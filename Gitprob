@@ -1,0 +1,19 @@
+bash
+
+sudo chown -R jenkins: jenkins /var/lib/jenkins/workspace
+
+Also give permission to execute Git inside workspace:
+
+bash
+
+sudo chmod -R 775 /var/lib/jenkins/workspace
+
+sudo usermod ag sudo jenkins
+
+Restart Jenkins:
+
+bash
+
+sudo systemctl restart
+
+jenkins
