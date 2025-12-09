@@ -1,0 +1,2 @@
+tomact-compile,codereview, deploy-war/ear -**/*.war add container-tomcatcreditencal
+kubernetics-kubernters config kubeconfig enter directly- cat ~/.kube/config -- deploy to kbernetics ,,,,kubectl get svc
