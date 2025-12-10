@@ -1,0 +1,43 @@
+passwordless
+
+ssh-keygen -t rsa -b 4096
+ssh-copy-id msis@slaveip1
+
+mount
+sudo apt update
+sudo apt install nfs-kernel-server -y //on themaster
+sudo apt install nfs-common -y //on the slaves
+
+6. Create a Shared Directory on the master
+sudo mkdir -p /nfs/shared 
+sudo chmod 777 /nfs/shared
+7. Configure and edit the NFS exports file on the master
+sudo nano /etc/exports
+//Add the following lines
+/nfs/shared 172.18.181.38(rw,sync,no_subtree_check) //here 172.18.181.38 is slaveip1
+/nfs/shared 172.18.181.50(rw,sync,no_subtree_check) //here 172.18.181.50 is slaveip2
+6. Create a Shared Directory on the master
+sudo mkdir -p /nfs/shared 
+sudo chmod 777 /nfs/shared
+7. Configure and edit the NFS exports file on the master
+sudo nano /etc/exports
+//Add the following lines
+/nfs/shared 172.18.181.38(rw,sync,no_subtree_check) //here 172.18.181.38 is slaveip1
+/nfs/shared 172.18.181.50(rw,sync,no_subtree_check) //here 172.18.181.50 is slaveip2
+Mount the NFS directory on Slave Nodes
+//On slave1
+sudo mkdir -p /nfs/shared
+sudo mount 172.18.181.38:/nfs/shared /nfs/shared
+//On slave2
+sudo mkdir -p /nfs/shared
+sudo mount 172.18.181.65:/nfs/shared /nfs/shared
+10. Verify the Mount
+//Run on any slave
+df -h | grep nfs
+// Output would be 172.18.181.38:/nfs/shared 100G 2G 98G 2% /nfs/shared
+//Test by creating a file from one slave and checking its visibility on other slave or master
+cd /nfs/shared //from slave1
+touch testfile
+// Next check if it appears on master or slave2
+cd /nfs/shared //from master
+ls //testfile will appear
