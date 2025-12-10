@@ -1,0 +1,151 @@
+1. Check if Apache Tomcat 9 is present
+sudo systemctl restart tomcat
+go to localhost:<tomcat_port_no> // to verify tomcat is running
+sudo systemctl status tomcat //this should show status active
+
+2. Install JDK and IntelliJ IDEA Ultimate
+sudo apt update
+sudo apt install openjdk-8-jdk
+sudo snap install intellij-idea-ultimate –classic
+3. Setting Up Tomcat in IntelliJ IDEA
+o Open Settings
+File → Settings → Build, Execution, Deployment
+o Open Application Servers
+On the left side, click: Application Servers
+o Add a New Server
+Click the ‘+’ icon : Select Tomcat Server
+o Select Tomcat Home Directory
+In the Tomcat Home field, enter the Tomcat installation path - /opt/tomcat 
+If there is Error / Warning then fix Permission Issue in Terminal
+
+Open terminal and run:
+sudo chmod -R a+rX /opt/tomcat // givesread and execute permission to all 
+users
+o Apply and Save
+Go back to IntelliJ → Apply → OK
+4. Create a Web Application (Server Side) – Calculator Project
+o Open IntelliJ IDEA
+Go to File → New Project
+o Choose Java Enterprise / Jakarta EE
+o Project Name: calculator
+o On the right side, under templates, choose: Web Application
+o Under Application Server, choose: Apache Tomcat (Tomcat 9.0)
+o Keep everything else default and click Finish → wait for the project to load
+5. Create service package and class
+o Under calculator in src/main/java right-click the package com.example.calculator → 
+Select New → Java Class → Create a class named OperatorService.java and add 
+below code
+
+package com.example.calculator;
+import java.util.List;
+import javax.jws.WebMethod; 
+import javax.jws.WebService;
+@WebService
+public class OperatorService {
+@WebMethod
+public int add(int a, int b) { return a + b; }
+@WebMethod
+public int sub(int a, int b) { return a - b; }
+@WebMethod
+public int mul(int a, int b) { return a * b; }
+@WebMethod
+public int div(int a, int b) { return a / b; }
+
+o Similarly in the same package, create OperatorPublisher.java and add below 
+code
+package com.example.calculator; 
+import javax.xml.ws.Endpoint;
+public class OperatorPublisher {
+public static void main(String[] args) {
+String url = "http://localhost:8085/calculator"; 
+Endpoint.publish(url, new OperatorService()); 
+System.out.println("Service started at: " + url + "?wsdl");
+}
+}
+
+6. Set Language Level in Project Structure
+o File → Project Structure
+o Click Modules on the left side.
+o Select your module: calculator
+o Sources tab -> Set Language Level -> 8 – Lambdas, type annotations, etc.
+o Open Dependencies -> Under Module SDK -> Project SDK (1.8) /Java 1.8
+o Click Apply → OK.
+7. Set Target Bytecode Version
+
+o File → Settings →Build, Execution, Deployment →Compiler → Java Compiler
+o Under Per-module bytecode version → Find your module calculator → Set Target 
+bytecode version = 8
+o Click Apply → OK.
+8. Set Maven Runner JRE (Java 1.8)
+o File → Settings → Build, Execution, Deployment → Build Tools → Maven → Runner
+o Under JRE -> Java 1.8
+o Click Apply → OK.
+251100680004
+9. Update pom.xml Settings (Set Java Version & Servlet Version)
+o In IntelliJ, look at the left navigation panel -> Click to open pom.xml.
+o Locate the <properties> section.
+o Make sure the versions are set to 1.8 like this :
+<properties>
+<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+<maven.compiler.target>1.8</maven.compiler.target> //change to 1.8
+<maven.compiler.source>1.8</maven.compiler.source> // change to 1.8
+<junit.version>5.13.2</junit.version>
+</properties>
+o Scroll to the dependencies section.
+o Check the jakarta.servlet-api dependency. Make sure version is: 4.0.4
+o If your file had any other version (like 5.x or newer), replace it with 4.0.4.
+o After modifying, right-click pom.xml →Maven → Sync Project.
+251100680004
+10. Run the Web Service (Server Application)
+o If HelloServlet.java shows errors -> open file -> Replace all jakarta.servlet.* with
+javax.servlet.*
+o Build → Rebuild Project
+o Open class OperatorPublisher.java → Run 'OperatorPublisher'
+o Check Console Output :
+Service started at http://localhost:8085/calculator
+o Access the WSDL in Browser : open http://localhost:8085/calculator?wsdl
+o If the WSDL loads successfully -
+Your web service is deployed and running correctly and you will get a page 
+pasted below.
+
+
+11. Create a Client Application - Client Project
+o Open IntelliJ IDEA
+Go to File → New Project
+o Do NOT select Java Enterprise / Jakarta EE. -> Choose Java (simple Java project).
+o Project Name: client -> keep default -> Click Finish -> Open in New Window.
+(Do not close the server project.)
+
+o Generate Client Proxy Classes inside src/com/example/client using wsimport
+Open system Terminal -> Change directory to the client src folder:
+cd /IdeaProjects/client/src/
+Run the wsimport command:
+wsimport -keep -p com.example.client http://localhost:8085/calculator?wsdl
+o Create Client File 
+client
+└ ── src
+└ ── com
+└ ── example
+└ ── client
+Right-click com.example.client → New → Java Class → TestOperatorClient
+Add the following code:
+package com.example.client; 
+public class TestOperatorClient {
+public static void main(String[] args) {
+OperatorServiceService service = new OperatorServiceService(); 
+OperatorService port = service.getOperatorServicePort();
+System.out.println("Add: " + port.add(20, 5)); 
+System.out.println("Sub: " + port.sub(20, 5)); 
+System.out.println("Mul: " + port.mul(20, 5)); 
+System.out.println("Div: " + port.div(20, 5));
+}
+}
+
+12. Run the Client Application
+Ensure your server project (OperatorPublisher) is still running.
+In client project -> right-click TestOperatorClient.java. 
+Select Run 'TestOperatorClient'.
+Output : will get the following:
+Add: 25
+Sub: 15
+Mul: 1
