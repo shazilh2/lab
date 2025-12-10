@@ -1,0 +1,149 @@
+1. Installing FREENAS / TRUENAS on VMWARE
+ Download the TrueNAS/FreeNAS installation ISO ( TrueNAS-13.3-U1.2.iso).
+ Start VMware and create a new virtual machine.
+ Pick the Typical setup option.
+ Choose Use ISO image and browse to the downloaded TrueNAS ISO file.
+ Set up the virtual disk size according to your needs.
+ Choose the option to store the virtual disk as a single file.
+
+
+ Click Next, then Finish to complete the VM setup.
+ Adjust the hardware settings by opening Customize Hardware.
+ Set the Network Adapter to NAT mode.
+ Allocate 4 GB of memory for the virtual machine.
+
+ When the virtual machine starts:
+ Choose Install/Upgrade from the menu.
+ Proceed with the default options by selecting Yes/OK when prompted.
+ Pick the virtual disk you created as the installation target.
+.
+ Complete the installation and allow the VM to reboot.
+ Set a root password when asked
+
+2. Accessing the TrueNAS Web Dashboard
+ After the system reboots, TrueNAS will show a LAN IP address on the console. 
+Open a browser and enter that IP in the address bar.
+ Log in using: Username: root
+Password: the password you created during installation
+251100680004
+(It is recommended to shutdown truenas and restart the VM again and relogin to truenas)
+3. Adding Two Virtual Hard Drives to the TrueNAS VM
+ Open the VM settings by right-clicking the TrueNAS virtual machine and selecting
+Settings.
+ Choose Add → Hard Disk, then select SCSI as the disk type.
+ Create a new virtual disk and set its size as needed.
+ Enable Store virtual disk as a single file.
+ Click Finish to add the disk.
+
+4. Creating Two Storage Pools in the TrueNAS Dashboard
+ After signing in to the TrueNAS web interface:
+ Open the Storage menu.
+ In the left sidebar, select Storage → Pools
+ Creating Pool 1
+ Click Add → Create New Pool
+
+ Follow these steps:
+ Enter the pool name: pool_1
+ In the Available Disks section, the newly added virtual disks (e.g., da1, da2) will appear
+ Select one disk and click Add to include it in the pool
+ Click Create, then confirm to finish
+ Click Add → Create New Pool
+ Follow these steps:
+ Enter the pool name: pool_2
+ Select the other virtual disk
+ Add the disk to the pool configuration
+ Click Create, then confirm to complete the pool setup
+
+ Now TrueNAS has two separate pools, each using a separate virtual disk as 
+shown below.
+
+
+
+
+5. WebDAV Configuration
+ Creating a WebDAV Share
+ Go to Sharing → WebDAV → Add
+ Enter the required details:
+ Name: myweb
+ Directory: /mnt/pool_1/myweb
+251100680004
+ Enabling and Setting Up the WebDAV Service
+ Open the Services section
+ Enable the WebDAV service and configure it as follows:
+ Authentication: None
+ Protocol: HTTP
+ Port: 8081
+251100680004
+ Now access myweb From Browser by pasting <truenasip>:8081/myweb
+
+
+6. NFS Configuration and Mounting on TrueNAS
+ Create an NFS Share
+ Open Sharing → Unix Shares (NFS)
+ Click Add
+ Set the Path to:
+/mnt/Pool2/LINUX
+ Save the share and enable the NFS service if asked
+251100680004
+ Mount the NFS Share on Linux
+ Run the following commands on your Terminal:
+sudo mkdir /mnt/nfs_check
+sudo mount -t nfs -o nfsvers=3 <truenas-ip>:/mnt/Pool2/LINUX /mnt/nfs_check
+ Validation
+ Create a dataset inside /mnt/Pool2/LINUX in the TrueNAS GUI
+ Check the folder /mnt/nfs_check on the Linux system
+ The newly created dataset should appear there, confirming the NFS share is 
+working
+251100680004
+
+7. Windows (SMB) Sharing Configuration 
+Create a User in TrueNAS
+ Go to Accounts → Users → Add
+ Enter the required details:
+ Username: e.g., winuser
+ Password: choose a secure password
+ Select the appropriate directory and set permissions
+ Click Submit to create the user
+251100680004
+Configure the SMB Service
+ Open the Services section
+ Enable SMB1 support if needed
+ Under Advanced Options, set the newly created user as the Guest User
+ Save the settings
+251100680004
+Create the SMB Share
+ Navigate to Sharing → Windows Shares (SMB)
+ Click Add
+ Set the Path to:
+/mnt/Pool2/WINDOWS
+ Enable Allow Guest Access
+ Click Save to create the share
+251100680004
+Setting Up the Windows Virtual Machine
+ Download Windows 10 ISO
+ Open VMware Workstation
+Select the VM Configuration
+ Choose Typical (Recommended)
+ Under installation options, select Use ISO image
+ Browse and choose the Windows 10 ISO file
+251100680004
+ Configure the Virtual Disk
+ When setting up storage, select Store virtual disk as a single file
+ Click Finish to complete the VM creation
+ Start the Windows VM
+ Power on the virtual machine to begin the Windows installation process
+251100680004
+Validating SMB Share from the Windows Machine
+ Start the Windows VM
+ Open File Explorer
+ Right-click Network and select Map network drive
+ In the path field, enter:
+\\<truenas-ip>\<SMB_Share_Name>
+ Uncheck the first option and choose Connect using different credentials
+ When asked to sign in, enter:
+ Username: winuser
+ Password: the password you created
+ This confirms that the SMB share is accessible from Windows.
+
+
+
